@@ -1,4 +1,4 @@
-VM resources
+## VM resources
 
 | Description                                            | Link                                                                                  |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
@@ -12,7 +12,7 @@ VM resources
 
 
 
-SNES resources
+## SNES resources
 
 | Description                                            | Link                                                                                  |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
@@ -30,7 +30,7 @@ SNES resources
 |                                                        |                                                                                       |
 
 
-Interpreter optimization (from https://github.com/mratsim/chirp8/blob/master/research/interpreter_optimization.md)
+## Interpreter optimization (from https://github.com/mratsim/chirp8/blob/master/research/interpreter_optimization.md)
 
 | Description                                                                                                                                                                                                                 | Link                                                                                                                    |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -50,4 +50,5 @@ Interpreter optimization (from https://github.com/mratsim/chirp8/blob/master/res
 | Dynamic recompilation wiki                                                                                                                                                                                                  | http://emulation.gametechwiki.com/index.php/Dynamic_recompilation                                                       |
 | Paper by author of ANTLR: The Structure and Performance of Efficient Interpreters                                                                                                                                           | https://www.jilp.org/vol5/v5paper12.pdf                                                                                 |
 | Paper by author of ANTLR introducing dynamic replication: Optimizing Indirect Branch Prediction Accuracy in Virtual Machine Interpreter                                                                                     | https://www.scss.tcd.ie/David.Gregg/papers/toplas05.pdf                                                                 |
+| Benchmarking VM Dispatch strategies in Rust: Switch vs unrolled switch vs tail call dispatch vs Computed Gotos                                                                                                              | https://pliniker.github.io/post/dispatchers/                                                                            |
 |                                                                                                                                                                                                                             |                                                                                                                         |
