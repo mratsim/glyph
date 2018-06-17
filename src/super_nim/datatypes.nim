@@ -49,13 +49,13 @@ type
     ImmediateIndex         # ldx #$12
     # ImmIndex16           # ldy #$1234
     Absolute               # and $1234
-    AbsLong                # and $123456
-    AbsLongX               # and $123456, x
-    AbsX                   # and $1234, x
-    AbsY                   # and $1234, y
-    AbsXIndirect           # jmp ($1234, x)
-    AbsIndirect            # jmp ($1234)
-    AbsIndirectLong        # jml [$1234]
+    AbsoluteLong           # and $123456
+    AbsoluteLongX          # and $123456, x
+    AbsoluteX              # and $1234, x
+    AbsoluteY              # and $1234, y
+    AbsoluteXIndirect      # jmp ($1234, x)
+    AbsoluteIndirect       # jmp ($1234)
+    AbsoluteIndirectLong   # jml [$1234]
     Direct                 # and $12
     DirectX                # stz $12, x
     DirectY                # stz $12, y
@@ -65,7 +65,7 @@ type
     DirectIndirectY        # and ($12), y
     DirectIndirectLongY    # and [$12], y
     ProgramCounterRelative # beq $12
-    PCRelativeLong         # brl $1234
+    ProgCountRelativeLong  # brl $1234
     Stack                  # rts
     StackRelative          # and $12, s
     StackRelativeIndirectY # and ($12, s), y
@@ -89,19 +89,19 @@ template accessLoHi(field: untyped) =
 const OpcLength* = [
     Accumulator            : 1,
     Implied                : 1,
-    # Immediate              : 2,
+    # Immediate            : 2,
     ImmediateAccum         : 2,
     # ImmAccum16           : 3,
     ImmediateIndex         : 2,
     # ImmIndex16           : 3,
     Absolute               : 3,
-    AbsLong                : 4,
-    AbsLongX               : 4,
-    AbsX                   : 3,
-    AbsY                   : 3,
-    AbsXIndirect           : 3,
-    AbsIndirect            : 3,
-    AbsIndirectLong        : 3,
+    AbsoluteLong           : 4,
+    AbsoluteLongX          : 4,
+    AbsoluteX              : 3,
+    AbsoluteY              : 3,
+    AbsoluteXIndirect      : 3,
+    AbsoluteIndirect       : 3,
+    AbsoluteIndirectLong   : 3,
     Direct                 : 2,
     DirectX                : 2,
     DirectY                : 2,
@@ -111,7 +111,7 @@ const OpcLength* = [
     DirectIndirectY        : 2,
     DirectIndirectLongY    : 2,
     ProgramCounterRelative : 2,
-    PCRelativeLong         : 3,
+    ProgCountRelativeLong  : 3,
     Stack                  : 1,
     StackRelative          : 2,
     StackRelativeIndirectY : 2,
@@ -124,6 +124,8 @@ type
     EccDirectlowNonZero # +1 cycle if low byte of Direct page register != 0
     EccCrossBoundary    # +1 cycle if adding index crosses a page boundary
     Ecc2_16bit          # +2 cycles if access is done in 16-bit memory or accumulator
+    EccBranchTaken      # +1 cycle if branch taken
+    Ecc65C02BranchCross # +1 cycle if branch taken, cross boundary and emulation mode
 
   ExtraCycleCosts* = set[ExtraCycleCost]
 
