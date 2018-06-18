@@ -112,7 +112,7 @@ const OpcLength* = [
     DirectIndirectLongY    : 2,
     ProgramCounterRelative : 2,
     ProgCountRelativeLong  : 3,
-    Stack                  : 1,
+    Stack                  : 1, # stack is incremented by 2
     StackRelative          : 2,
     StackRelativeIndirectY : 2,
     BlockMove              : 3,
@@ -120,12 +120,15 @@ const OpcLength* = [
 
 type
   ExtraCycleCost* = enum
-    Ecc1_16bit          # +1 cycle if access is done in 16-bit memory or accumulator
+    Ecc1_m16bit         # +1 cycle if access is done in 16-bit memory or accumulator
     EccDirectlowNonZero # +1 cycle if low byte of Direct page register != 0
     EccCrossBoundary    # +1 cycle if adding index crosses a page boundary
-    Ecc2_16bit          # +2 cycles if access is done in 16-bit memory or accumulator
+    Ecc2_m16bit         # +2 cycles if access is done in 16-bit memory or accumulator
     EccBranchTaken      # +1 cycle if branch taken
     Ecc65C02BranchCross # +1 cycle if branch taken, cross boundary and emulation mode
+    Ecc65816Native      # +1 cycle if 65816 mode (no emulation)
+    Ecc1_x16bit         # +1 cycle if access is done in 16-bit index register
+
 
   ExtraCycleCosts* = set[ExtraCycleCost]
 
