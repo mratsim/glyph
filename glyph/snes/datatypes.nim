@@ -44,10 +44,7 @@ type
     # Name                 # Example
     Accumulator            # dec a
     Implied                # clc
-    ImmediateAccum         # inc #$12
-    # ImmAccum16           # lda #$1234
-    ImmediateIndex         # ldx #$12
-    # ImmIndex16           # ldy #$1234
+    Immediate              # inc #$12 or #$1234
     Absolute               # and $1234
     AbsoluteLong           # and $123456
     AbsoluteLongX          # and $123456, x
@@ -89,11 +86,7 @@ template accessLoHi(field: untyped) =
 const OpcLength* = [
     Accumulator            : 1,
     Implied                : 1,
-    # Immediate            : 2,
-    ImmediateAccum         : 2,
-    # ImmAccum16           : 3,
-    ImmediateIndex         : 2,
-    # ImmIndex16           : 3,
+    Immediate              : 2,
     Absolute               : 3,
     AbsoluteLong           : 4,
     AbsoluteLongX          : 4,
