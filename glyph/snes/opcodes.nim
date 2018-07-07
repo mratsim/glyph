@@ -155,6 +155,9 @@ genOpcTable:
     implementation:
       discard
 
+  op COP: # Co-Processor Enable
+    0x02: cycles 7, {Ecc65816Native}                                    , Immediate
+
   op CPX: # Compare Index Register X with Memory
     0xE0: cycles 2, {Ecc1_x16bit}                                       , Immediate
     0xE4: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                  , Direct
@@ -434,7 +437,7 @@ genOpcTable:
     0x6A: cycles 2, {}                                                  , Accumulator
     0x6E: cycles 6, {Ecc2_m16bit}                                       , Absolute
     0x76: cycles 6, {EccDirectLowNonZero, Ecc2_m16bit}                  , DirectX
-    0x6E: cycles 7, {Ecc2_m16bit}                                       , AbsoluteX
+    0x7E: cycles 7, {Ecc2_m16bit}                                       , AbsoluteX
 
     implementation:
       discard
@@ -499,7 +502,6 @@ genOpcTable:
     0x83: cycles 4, {Ecc1_m16bit}                                       , StackRelative
     0x85: cycles 3, {Ecc1_m16bit, EccDirectLowNonZero}                  , Direct
     0x87: cycles 6, {Ecc1_m16bit, EccDirectLowNonZero}                  , DirectIndirectLong
-    0x89: cycles 2, {Ecc1_m16bit}                                       , Immediate
     0x8D: cycles 4, {Ecc1_m16bit}                                       , Absolute
     0x8F: cycles 5, {Ecc1_m16bit}                                       , AbsoluteLong
     0x91: cycles 5, {Ecc1_m16bit, EccDirectLowNonZero, EccCrossBoundary}, DirectIndirectY
@@ -515,7 +517,7 @@ genOpcTable:
       discard
 
   op STP: ## Stop Processor
-    0xE2: cycles 3, {Ecc3_reset}                                       , Implied
+    0xDB: cycles 3, {Ecc3_reset}                                       , Implied
     implementation:
       discard
 
@@ -575,9 +577,9 @@ genOpcTable:
     implementation:
       discard
 
-  op TRB: ## Test and Set Memory Bits Against Accumulator
-    0x14: cycles 5, {EccDirectLowNonZero, Ecc2_m16bit}                 , Direct
-    0x1C: cycles 6, {Ecc2_m16bit}                                      , Absolute
+  op TSB: ## Test and Set Memory Bits Against Accumulator
+    0x04: cycles 5, {EccDirectLowNonZero, Ecc2_m16bit}                 , Direct
+    0x0C: cycles 6, {Ecc2_m16bit}                                      , Absolute
     implementation:
       discard
 

@@ -3,6 +3,9 @@
 
 import macros, strformat, strutils, tables, ../datatypes
 
+when defined(glyphdebug):
+  import strutils
+
 macro genOpcTable*(opcs: untyped): untyped =
   # Usage:
   # ------
@@ -106,3 +109,7 @@ macro genOpcTable*(opcs: untyped): untyped =
 
   # Reorder by opcode value
   opcTable.sort(proc(x, y: tuple[key: int, val: OpcParams]):int = cmp(x.key, y.key))
+
+  when defined(glyphdebug):
+    for k, v in opcTable.pairs:
+      echo "0x" & k.toHex(2) & " - " & v.name
