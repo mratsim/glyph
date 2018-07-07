@@ -78,7 +78,6 @@ macro genOpcTable*(opcs: untyped): untyped =
       # Sanity checks
       instruction.expectKind nnkCall
       assert instruction.len == 2
-      echo instruction.treerepr
       instruction[0].expectKind nnkIntLit
       instruction[1].expectKind nnkStmtList
 
@@ -100,7 +99,10 @@ macro genOpcTable*(opcs: untyped): untyped =
         opcParams: OpcParams = (name, cycles, ecc, addr_mode, impl)
 
       # Add to the table
-      assert opcTable.hasKeyOrPut(opcode, opcParams).not, &"Opcode 0x{opcode.toHex} {name} already exists"
+      let hasKey = opcTable.hasKeyOrPut(opcode, opcParams)
+      if hasKey:
+        let usedBy = opcTable[opcode].name
+        error &"Tried to insert opcode 0x{opcode.toHex(2)} for {name}. It is already used by {usedBy} instruction."
 
   # Reorder by opcode value
   opcTable.sort(proc(x, y: tuple[key: int, val: OpcParams]):int = cmp(x.key, y.key))

@@ -63,7 +63,6 @@ type
     DirectIndirectLongY    # and [$12], y
     ProgramCounterRelative # beq $12
     ProgCountRelativeLong  # brl $1234
-    Stack                  # rts
     StackRelative          # and $12, s
     StackRelativeIndirectY # and ($12, s), y
     BlockMove              # mvp $12, $34
@@ -105,7 +104,6 @@ const OpcLength* = [
     DirectIndirectLongY    : 2,
     ProgramCounterRelative : 2,
     ProgCountRelativeLong  : 3,
-    Stack                  : 1, # stack is incremented by 2
     StackRelative          : 2,
     StackRelativeIndirectY : 2,
     BlockMove              : 3,

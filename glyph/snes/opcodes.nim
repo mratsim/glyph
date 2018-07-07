@@ -101,7 +101,7 @@ genOpcTable:
       discard
 
   op BRL: # Branch Long Always
-    0x82: cycles 2,                                                    , ProgCountRelativeLong
+    0x82: cycles 2, {}                                                 , ProgCountRelativeLong
     implementation:
       discard
 
@@ -290,11 +290,11 @@ genOpcTable:
       discard
 
   op LSR: # Logical Shift Memory or Accumulator Right
-    0x06: cycles 5, {EccDirectlowNonZero, Ecc2_m16bit}                  , Direct
-    0x0A: cycles 2, {}                                                  , Accumulator
-    0x0E: cycles 6, {Ecc2_m16bit}                                       , Absolute
-    0x16: cycles 6, {EccDirectlowNonZero, Ecc2_m16bit}                  , DirectX
-    0x1E: cycles 7, {Ecc2_m16bit}                                       , AbsoluteX
+    0x46: cycles 5, {EccDirectlowNonZero, Ecc2_m16bit}                  , Direct
+    0x4A: cycles 2, {}                                                  , Accumulator
+    0x4E: cycles 6, {Ecc2_m16bit}                                       , Absolute
+    0x56: cycles 6, {EccDirectlowNonZero, Ecc2_m16bit}                  , DirectX
+    0x5E: cycles 7, {Ecc2_m16bit}                                       , AbsoluteX
 
     implementation:
       discard
@@ -331,5 +331,85 @@ genOpcTable:
     0x1D: cycles 4, {Ecc1_m16bit, EccCrossBoundary}                     , AbsoluteX
     0x1F: cycles 5, {Ecc1_m16bit}                                       , AbsoluteLongX
 
+    implementation:
+      discard
+
+  op PEA: # Push Effective Absolute Address
+    0xF4: cycles 5, {}                                                  , Immediate
+    implementation:
+      discard
+
+  op PEI: # Push Effective Indirect Address
+    0xD4: cycles 6, {EccDirectlowNonZero}                               , Direct
+    implementation:
+      discard
+
+  op PER: # Push Effective Absolute Address
+    0x62: cycles 6, {}                                                  , Immediate
+    implementation:
+      discard
+
+  op PHA: # Push Accumulator
+    0x48: cycles 3, {Ecc1_m16bit}                                       , Immediate
+    implementation:
+      discard
+
+  op PHB: # Push Data Bank Register
+    0x8B: cycles 3, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PHD: # Push Direct Page Register
+    0x0B: cycles 4, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PHK: # Push Program Bank Register
+    0x4B: cycles 3, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PHP: # Push Processor Status Register
+    0x08: cycles 3, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PHX: # Push Index Register X
+    0xDA: cycles 3, {Ecc1_x16bit}                                       , Implied
+    implementation:
+      discard
+
+  op PHY: # Push Index Register Y
+    0x5A: cycles 3, {Ecc1_x16bit}                                       , Implied
+    implementation:
+      discard
+
+  op PLA: # Pull Accumulator
+    0x68: cycles 4, {Ecc1_m16bit}                                       , Implied
+    implementation:
+      discard
+
+  op PLB: # Pull Data Bank Register
+    0xAB: cycles 4, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PLD: # Pull Direct Page Register
+    0x2B: cycles 5, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PLP: # Pull Processor Status Register
+    0x28: cycles 4, {}                                                  , Implied
+    implementation:
+      discard
+
+  op PLX: # Pull Index Register X
+    0xFA: cycles 4, {Ecc1_x16bit}                                       , Implied
+    implementation:
+      discard
+
+  op PLY: # Pull Index Register Y
+    0x7A: cycles 4, {Ecc1_x16bit}                                       , Implied
     implementation:
       discard
