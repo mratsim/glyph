@@ -16,3 +16,11 @@
 | The best opcode table                                                               | http://oxyron.de/html/opcodes816.html                                                        |
 | Excellent thread with byuu (higan) and phire (dolphin) discussing subcycle accuracy | https://www.reddit.com/r/emulation/comments/53jdqj/what_exactly_is_a_cycleaccurate_emulator/ |
 | Good overview of addressing modes and cycle costs                                   | https://github.com/gilligan/snesdev/blob/master/docs/65816.txt                               |
+| SNES timings                                                                        | http://folk.uio.no/sigurdkn/snes/timing.txt                                                  |
+| SNES Graphics                                                                       | https://emu-docs.org/Super%20NES/General/snesdoc.html                                        |
+| Official DataSheet with cycle accurate timings                                      | http://datasheets.chipdb.org/Western%20Design/w65c816s.pdf                                   |
+| Memory mapping                                                                      | https://wiki.superfamicom.org/memory-mapping                                                 |
+| LoROM detail                                                                        | https://www.cs.umb.edu/~bazz/snes/cartridges/lorom.html                                      |
+| Database of games  ROM, RAM and PCB                                                 | https://jensma.de/snes/index.php                                                             |
+| In-depth Memory Mapping                                                             | http://problemkaputt.de/fullsnes.htm                                                         |
+|                                                                                     |                                                                                              |
