@@ -5,40 +5,53 @@ import tables
 
 ######################################################################
 #
+# Helpers
+#
+######################################################################
+
+# We don't use union types here to allow compilation to JS.
+
+template lo*(x: uint16): uint8 = uint8(x and 0b00000000_11111111)
+template `lo=`*(x: var uint16, data: uint8) =
+  x = (x and 0b11111111_00000000) or data.uint16
+
+template hi*(x: uint16): uint8 = uint8(x and 0b11111111_00000000)
+template `hi=`*(x: var uint16, data: uint8) =
+  x = (x and 0b00000000_11111111) or (data.uint16 shl 8)
+
+######################################################################
+#
 # CPU
 #
 ######################################################################
 
 type
-  Int = int         ## Base uint type used in the VM. Having it at the host word size will be faster.
-                    ## as otherwise all load will require zero extending. It takes more space though.
-  U8 = range[Int(0) .. Int(0xFF)]
-  U16 = range[Int(0) .. Int(0xFFFF)]
+  # Note using uint8 instead of machine word size will add zero-extending overhead at every load
 
   CPUStatusKind* = enum
-    Carry = 0b00000001, ## C - 0b00000001
-    Zero,               ## Z - 0b00000010
-    IRQ_Disabled,       ## I - 0b00000100
-    Decimal_Mode,       ## D - 0b00001000
-    IndexRegister8bit,  ## X - 0b00010000
-    AccumRegister8bit,  ## M - 0b00100000
-    Overflow,           ## V - 0b01000000
-    Negative,           ## N - 0b10000000
-    Emulation_mode      ## E - hidden / B - Break 0b00010000. Define if 6502 mode or 65816 mode
+    Carry              ## C - 0b00000001
+    Zero               ## Z - 0b00000010
+    IRQ_Disabled       ## I - 0b00000100
+    Decimal_Mode       ## D - 0b00001000
+    IndexRegister8bit  ## X - 0b00010000
+    AccumRegister8bit  ## M - 0b00100000
+    Overflow           ## V - 0b01000000
+    Negative           ## N - 0b10000000
+    Emulation_mode     ## E - hidden / B - Break 0b00010000. Define if 6502 mode or 65816 mode
 
-  Cpu* = object
-    # Status register
-    P: set[CPUStatusKind]  ## Processor status
+  CpuRegs* = object
     # General purpose registers
-    A: U16           ## Accumulator - Math register. Stores operands or results of arithmetic operations.
-    X, Y: U16        ## Index registers. Reference memory, pass data, counters for loops ...
+    A*: uint16        ## Accumulator - Math register. Stores operands or results of arithmetic operations.
+    X*, Y*: uint16    ## Index registers. Reference memory, pass data, counters for loops ...
     # Addressing registers
-    D: U16           ## Direct page addressing. Holds the memory bank address of the data the CPU is accessing.
-    DB: U8           ## Data Bank. Holds the default bank for memory transfers.
+    D*: uint16        ## Direct page addressing. Holds the memory bank address of the data the CPU is accessing.
+    DB*: uint8        ## Data Bank. Holds the default bank for memory transfers.
     # Program control register
-    PC: U16          ## Program Counter. Address of the current memory instruction.
-    PB: U8           ## Program Bank. Holds the bank address of all instruction fetches.
-    SP: U16          ## Stack Pointer.
+    PB*: uint8        ## Program Bank. Holds the bank address of all instruction fetches.
+    PC*: uint8        ## Program Counter. Address of the current memory instruction.
+    SP*: uint8        ## Stack Pointer.
+    # Status register
+    P*: set[CPUStatusKind]  ## Processor status
 
   AddressingMode* = enum
     # Name                 # Example
@@ -66,15 +79,6 @@ type
     StackRelative          # and $12, s
     StackRelativeIndirectY # and ($12, s), y
     BlockMove              # mvp $12, $34
-
-template accessLoHi(field: untyped) =
-  ## Create proc to address low and high part
-  ## of a 16-bit field
-  # Note we could use union but that prevents Javascript compilation
-
-  func `field l`*(cpu: Cpu): U8 {.inline.}= cpu.`field` and 7
-  func `field h`*(cpu: Cpu): U8 {.inline.}= cpu.`field` shr 8
-
 
 ######################################################################
 #
@@ -128,3 +132,20 @@ type
 type
   OpcParams* = tuple[name: string, cycles: int, ecc: NimNode, addr_mode: NimNode, impl: NimNode]
   OpcTable* = OrderedTable[int, OpcParams]
+
+
+######################################################################
+#
+# Memory
+#
+######################################################################
+type
+  Mem* = object
+
+func `[]`*(mem: Mem, adr: uint8): uint16 =
+  # Stub
+  discard
+
+func `[]`*(mem: Mem, adr: uint16): uint16 =
+  # Stub
+  discard
