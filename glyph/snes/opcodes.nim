@@ -23,7 +23,45 @@ genOpcTable:
     0x7F: cycles 5, {Ecc1_m16bit}                                       , AbsoluteLongX
 
     implementation:
-      discard
+      template adcImpl(sys: Sys, T: typedesc[uint8 or uint16], carry, overflow: var bool) =
+        # Implement uint8 and uint16 mode
+
+        template A {.dirty.} =
+          # Alias for accumulator depending on mode
+          when T is uint16: sys.cpu.regs.A
+          else: sys.cpu.regs.A.lo
+
+        func add(x, y: T, carry, overflow: var bool): T {.nimcall, inline.} =
+          # Add function helper
+          result = x + y
+          carry = carry or result < x
+          overflow =  overflow or
+                      not(result.isMsbSet xor x.isMsbSet) or
+                      not(result.isMsbSet xor y.isMsbSet)
+
+        # Fetch data
+        let val = T(`addressingMode`(sys, `extraCycleCosts`{.inject.}))
+
+        # Computation
+        # TODO: Decimal mode
+        A = add(A, val, carry, overflow)
+        A = add(A, T(sys.cpu.regs.P.carry), carry, overflow)
+
+      var carry, overflow = false
+
+      if sys.cpu.regs.emulation_mode:
+        sys.adcImpl(uint8, carry, overflow)
+      else:
+        sys.adcImpl(uint16, carry, overflow)
+
+      # Sets the flags
+      sys.cpu.regs.P.carry    = carry
+      sys.cpu.regs.P.overflow = overflow
+      sys.cpu.regs.P.negative = A.isMsbSet
+      sys.cpu.regs.P.zero     = A == 0
+
+      # Increase cycle count
+      inc sys.cpu.cycles
 
   op AND: # AND Accumulator with memory
     0x21: cycles 6, {Ecc1_m16bit, EccDirectLowNonZero}                  , DirectXIndirect

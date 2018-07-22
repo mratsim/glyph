@@ -9,15 +9,21 @@ import tables
 #
 ######################################################################
 
-# We don't use union types here to allow compilation to JS.
+# We don't use {.union.} types here for lo and hi uint8 access of uint16
+# as it doesn't work with JS target.
 
-template lo*(x: uint16): uint8 = uint8(x and 0b00000000_11111111)
+template lo*(x: uint16): uint8 = uint8(x and 0x00FF)
 template `lo=`*(x: var uint16, data: uint8) =
-  x = (x and 0b11111111_00000000) or data.uint16
+  x = (x and 0xFF00) or data.uint16
 
-template hi*(x: uint16): uint8 = uint8(x and 0b11111111_00000000)
+template hi*(x: uint16): uint8 = uint8(x and 0xFF00)
 template `hi=`*(x: var uint16, data: uint8) =
-  x = (x and 0b00000000_11111111) or (data.uint16 shl 8)
+  x = (x and 0x00FF) or (data.uint16 shl 8)
+
+func isMsbSet*[T: SomeUnsignedInt](n: T): bool {.inline.}=
+  ## Returns true if the most significant bit of an integer is set.
+  const msb_pos = sizeof(T) * 8 - 1
+  result = bool(n shr msb_pos)
 
 ######################################################################
 #
@@ -84,6 +90,26 @@ type
     regs: CpuRegs
     cycles: int
 
+template genFlagAccessor(flag: CPUStatusKind, accessor: untyped) =
+  template `accessor`*(P: set[CPUStatusKind]): bool =
+    flag in P
+
+  template `accessor=`*(P: set[CPUStatusKind], val: bool) =
+    if val:
+      P.incl flag
+    else:
+      P.excl flag
+
+genFlagAccessor Carry, carry
+genFlagAccessor Zero, zero
+genFlagAccessor IRQ_Disabled, irq_disabled
+genFlagAccessor Decimal_Mode, decimal_mode
+genFlagAccessor Index8bit, index8bit
+genFlagAccessor Accum8bit, accum8bit
+genFlagAccessor Overflow, overflow
+genFlagAccessor Negative, negative
+genFlagAccessor Emulation_mode, emulation_mode
+
 ######################################################################
 #
 # Opcodes
@@ -130,7 +156,6 @@ type
     Ecc3_reset          # +3 cycles to shut CPU down: additional cycles required by reset for restart
     Ecc3_interrupt      # +3 cycles to shut CPU down: additional cycles required by interrupt for restart
 
-
   ExtraCycleCosts* = set[ExtraCycleCost]
 
 type
@@ -146,7 +171,7 @@ type
 type
   Mem* = object
 
-  Sys* = object
+  Sys* = ref object
     cpu*: Cpu
     mem*: Mem
 
