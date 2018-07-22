@@ -33,8 +33,8 @@ type
     Zero               ## Z - 0b00000010
     IRQ_Disabled       ## I - 0b00000100
     Decimal_Mode       ## D - 0b00001000
-    IndexRegister8bit  ## X - 0b00010000
-    AccumRegister8bit  ## M - 0b00100000
+    Index8bit          ## X - 0b00010000
+    Accum8bit          ## M - 0b00100000
     Overflow           ## V - 0b01000000
     Negative           ## N - 0b10000000
     Emulation_mode     ## E - hidden / B - Break 0b00010000. Define if 6502 mode or 65816 mode
@@ -80,6 +80,10 @@ type
     StackRelativeIndirectY # and ($12, s), y
     BlockMove              # mvp $12, $34
 
+  Cpu* = object
+    regs: CpuRegs
+    cycles: int
+
 ######################################################################
 #
 # Opcodes
@@ -122,7 +126,7 @@ type
     EccBranchTaken      # +1 cycle if branch taken
     Ecc65C02BranchCross # +1 cycle if branch taken, cross boundary and emulation mode
     Ecc65816Native      # +1 cycle if 65816 mode (no emulation)
-    Ecc1_x16bit         # +1 cycle if access is done in 16-bit index register
+    Ecc1_xy16bit        # +1 cycle if access is done in 16-bit index register
     Ecc3_reset          # +3 cycles to shut CPU down: additional cycles required by reset for restart
     Ecc3_interrupt      # +3 cycles to shut CPU down: additional cycles required by interrupt for restart
 
@@ -142,10 +146,10 @@ type
 type
   Mem* = object
 
-func `[]`*(mem: Mem, adr: uint8): uint16 =
-  # Stub
-  discard
+  Sys* = object
+    cpu*: Cpu
+    mem*: Mem
 
-func `[]`*(mem: Mem, adr: uint16): uint16 =
+func `[]`*(mem: Mem, adr: SomeUnsignedInt): uint8 =
   # Stub
   discard

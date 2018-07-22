@@ -71,11 +71,11 @@ genOpcTable:
       discard
 
   op BIT: # Test Bits
-    0x24: cycles 3, {Ecc1_m16bit, EccDirectNonZero}                     , Direct
-    0x2C: cycles 4, {Ecc1_m16bit}                                       , Absolute
-    0x34: cycles 4, {Ecc1_m16bit, EccDirectNonZero}                     , DirectX
-    0x3C: cycles 4, {Ecc1_m16bit, EccCrossBoundary}                     , AbsoluteX
-    0x89: cycles 2, {Ecc1_m16bit}                                       , Immediate
+    0x24: cycles 3, {Ecc1_m16bit, EccDirectNonZero}                    , Direct
+    0x2C: cycles 4, {Ecc1_m16bit}                                      , Absolute
+    0x34: cycles 4, {Ecc1_m16bit, EccDirectNonZero}                    , DirectX
+    0x3C: cycles 4, {Ecc1_m16bit, EccCrossBoundary}                    , AbsoluteX
+    0x89: cycles 2, {Ecc1_m16bit}                                      , Immediate
 
     implementation:
       discard
@@ -159,17 +159,17 @@ genOpcTable:
     0x02: cycles 7, {Ecc65816Native}                                    , Immediate
 
   op CPX: # Compare Index Register X with Memory
-    0xE0: cycles 2, {Ecc1_x16bit}                                       , Immediate
-    0xE4: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                  , Direct
-    0xEC: cycles 4, {Ecc1_x16bit}                                       , Absolute
+    0xE0: cycles 2, {Ecc1_xy16bit}                                      , Immediate
+    0xE4: cycles 3, {EccDirectLowNonZero, Ecc1_xy16bit}                 , Direct
+    0xEC: cycles 4, {Ecc1_xy16bit}                                      , Absolute
 
     implementation:
       discard
 
   op CPY: # Compare Index Register Y with Memory
-    0xC0: cycles 2, {Ecc1_x16bit}                                       , Immediate
-    0xC4: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                  , Direct
-    0xCC: cycles 4, {Ecc1_x16bit}                                       , Absolute
+    0xC0: cycles 2, {Ecc1_xy16bit}                                      , Immediate
+    0xC4: cycles 3, {EccDirectLowNonZero, Ecc1_xy16bit}                 , Direct
+    0xCC: cycles 4, {Ecc1_xy16bit}                                      , Absolute
 
     implementation:
       discard
@@ -273,21 +273,21 @@ genOpcTable:
       discard
 
   op LDX: # Load Index Register X from Memory
-    0xA2: cycles 2, {Ecc1_x16bit}                                       , Immediate
-    0xA6: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                  , Direct
-    0xAE: cycles 4, {Ecc1_x16bit}                                       , Absolute
-    0xB6: cycles 4, {EccDirectLowNonZero, Ecc1_x16bit}                  , DirectY
-    0xBE: cycles 4, {EccCrossBoundary, Ecc1_x16bit}                     , AbsoluteY
+    0xA2: cycles 2, {Ecc1_xy16bit}                                      , Immediate
+    0xA6: cycles 3, {EccDirectLowNonZero, Ecc1_xy16bit}                 , Direct
+    0xAE: cycles 4, {Ecc1_xy16bit}                                      , Absolute
+    0xB6: cycles 4, {EccDirectLowNonZero, Ecc1_xy16bit}                 , DirectY
+    0xBE: cycles 4, {EccCrossBoundary, Ecc1_xy16bit}                    , AbsoluteY
 
     implementation:
       discard
 
   op LDY: # Load Index Register Y from Memory
-    0xA0: cycles 2, {Ecc1_x16bit}                                       , Immediate
-    0xA4: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                  , Direct
-    0xAC: cycles 4, {Ecc1_x16bit}                                       , Absolute
-    0xB4: cycles 4, {EccDirectLowNonZero, Ecc1_x16bit}                  , DirectX
-    0xBC: cycles 4, {EccCrossBoundary, Ecc1_x16bit}                     , AbsoluteX
+    0xA0: cycles 2, {Ecc1_xy16bit}                                      , Immediate
+    0xA4: cycles 3, {EccDirectLowNonZero, Ecc1_xy16bit}                 , Direct
+    0xAC: cycles 4, {Ecc1_xy16bit}                                      , Absolute
+    0xB4: cycles 4, {EccDirectLowNonZero, Ecc1_xy16bit}                 , DirectX
+    0xBC: cycles 4, {EccCrossBoundary, Ecc1_xy16bit}                    , AbsoluteX
 
     implementation:
       discard
@@ -378,12 +378,12 @@ genOpcTable:
       discard
 
   op PHX: # Push Index Register X
-    0xDA: cycles 3, {Ecc1_x16bit}                                       , Implied
+    0xDA: cycles 3, {Ecc1_xy16bit}                                      , Implied
     implementation:
       discard
 
   op PHY: # Push Index Register Y
-    0x5A: cycles 3, {Ecc1_x16bit}                                       , Implied
+    0x5A: cycles 3, {Ecc1_xy16bit}                                      , Implied
     implementation:
       discard
 
@@ -408,12 +408,12 @@ genOpcTable:
       discard
 
   op PLX: # Pull Index Register X
-    0xFA: cycles 4, {Ecc1_x16bit}                                       , Implied
+    0xFA: cycles 4, {Ecc1_xy16bit}                                      , Implied
     implementation:
       discard
 
   op PLY: # Pull Index Register Y
-    0x7A: cycles 4, {Ecc1_x16bit}                                       , Implied
+    0x7A: cycles 4, {Ecc1_xy16bit}                                      , Implied
     implementation:
       discard
 
@@ -517,22 +517,22 @@ genOpcTable:
       discard
 
   op STP: ## Stop Processor
-    0xDB: cycles 3, {Ecc3_reset}                                       , Implied
+    0xDB: cycles 3, {Ecc3_reset}                                        , Implied
     implementation:
       discard
 
   op STX: ## Store Index Register X to Memory
-    0x86: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                 , Direct
-    0x8E: cycles 4, {Ecc1_x16bit}                                      , Absolute
-    0x96: cycles 4, {EccDirectLowNonZero, Ecc1_x16bit}                 , DirectY
+    0x86: cycles 3, {EccDirectLowNonZero, Ecc1_xy16bit}                 , Direct
+    0x8E: cycles 4, {Ecc1_xy16bit}                                      , Absolute
+    0x96: cycles 4, {EccDirectLowNonZero, Ecc1_xy16bit}                 , DirectY
 
     implementation:
       discard
 
   op STY: ## Store Index Register X to Memory
-    0x84: cycles 3, {EccDirectLowNonZero, Ecc1_x16bit}                 , Direct
-    0x8C: cycles 4, {Ecc1_x16bit}                                      , Absolute
-    0x94: cycles 4, {EccDirectLowNonZero, Ecc1_x16bit}                 , DirectY
+    0x84: cycles 3, {EccDirectLowNonZero, Ecc1_xy16bit}                 , Direct
+    0x8C: cycles 4, {Ecc1_xy16bit}                                      , Absolute
+    0x94: cycles 4, {EccDirectLowNonZero, Ecc1_xy16bit}                 , DirectY
 
     implementation:
       discard
