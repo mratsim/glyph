@@ -26,4 +26,8 @@
 | SNES tests                                                                          | https://docs.google.com/spreadsheets/d/11AxbMohEzBab1LBbq7t-BQBdpGMERoWv-ibaXVLBDrE/edit#gid=2067633561 |
 | SNES Accuracy tests android                                                         | https://www.reddit.com/r/emulation/comments/2nv30w/android_snes_emulator_accuracy_testing_results/      |
 | More SNES tests                                                                     | https://forums.bannister.org/ubbthreads.php?ubb=showflat&Number=59965                                   |
+| More recent accuracy tests                                                          | http://tasvideos.org/EmulatorResources/SNESAccuracyTests.html                                           |
+| Programming the SNES (in-depth, French)                                             | https://jeux.developpez.com/tutoriels/SNES/debuter-programmation-super-nintendo/                        |
+| SNES Dev Manual by Nintendo                                                         | https://ia801905.us.archive.org/13/items/SNESDevManual/book1.pdf                                        |
+| Exhaustive memory, DMA, PPU, APU, Controllers, Cartridges, Timings                  | https://problemkaputt.de/fullsnes.htm                                                                   |
 |                                                                                     |                                                                                                         |
