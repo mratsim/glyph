@@ -39,8 +39,9 @@ genOpcTable:
                       not(result.isMsbSet xor x.isMsbSet) or
                       not(result.isMsbSet xor y.isMsbSet)
 
-        # Fetch data
-        let val = T(`addressingMode`(sys, `extraCycleCosts`{.inject.}))
+        # Fetch data.
+        # `addressingMode` and `extraCycleCosts` are injected by "implementation"
+        let val = sys.`addressingMode`(T, `extraCycleCosts`{.inject.})
 
         # Computation
         # TODO: Decimal mode
