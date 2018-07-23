@@ -46,23 +46,22 @@ genOpcTable:
         # Computation
         # TODO: Decimal mode
         A = add(A, val, carry, overflow)
-        A = add(A, T(sys.cpu.regs.P.carry), carry, overflow)
+        A = add(A, T(P.carry), carry, overflow)
 
       var carry, overflow = false
 
-      if sys.cpu.regs.emulation_mode:
+      if P.emulation_mode:
         sys.adcImpl(uint8, carry, overflow)
       else:
         sys.adcImpl(uint16, carry, overflow)
 
       # Sets the flags
-      sys.cpu.regs.P.carry    = carry
-      sys.cpu.regs.P.overflow = overflow
-      sys.cpu.regs.P.negative = A.isMsbSet
-      sys.cpu.regs.P.zero     = A == 0
+      P.carry    = carry
+      P.overflow = overflow
+      P.negative = A.isMsbSet
+      P.zero     = A == 0
 
-      # Increase cycle count
-      inc sys.cpu.cycles
+      CycleCPU()
 
   op AND: # AND Accumulator with memory
     0x21: cycles 6, {Ecc1_m16bit, EccDirectLowNonZero}                  , DirectXIndirect

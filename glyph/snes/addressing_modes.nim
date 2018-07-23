@@ -12,11 +12,34 @@ import ./datatypes
 # implementation cycles = theoretical cycles + modifiers
 
 func immediate*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
-  when T is uint16:
-    result.lo = sys.mem[sys.cpu.regs.pc + 1]
-    inc sys.cpu.cycles
-    result.hi = sys.mem[sys.cpu.regs.pc + 2]
-    inc sys.cpu.cycles
-  else:
-    result = sys.mem[sys.cpu.regs.pc + 1]
-    inc sys.cpu.cycles
+  when T is uint16: # 2 cycles
+    Next()
+    result.lo = sys.mem[DB, PC]
+    CycleCPU()
+
+    Next()
+    result.hi = sys.mem[DB, PC]
+    CycleCPU()
+
+  else: # 1 cycle
+    Next()
+    result = sys.mem[DB, PC]
+    CycleCPU()
+
+func absolute*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+
+  let adr = sys.immediate(uint16, ecc) # 2 cycles
+
+  when T is uint16: # 2 cycles - total 4
+    result.lo = sys.mem[DB, adr]
+    CycleCPU()
+
+    if adr == 0xFFFF'u16:
+      result.hi = sys.mem[DB + 1, 0]
+    else:
+      result.hi = sys.mem[DB, adr + 1]
+    CycleCPU()
+
+  else: # 1 cycle - total 3
+    result = sys.mem[DB, adr]
+    CycleCPU()

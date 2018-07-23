@@ -54,8 +54,8 @@ type
     DB*: uint8              ## Data Bank. Holds the default bank for memory transfers.
     # Program control register
     PB*: uint8              ## Program Bank. Holds the bank address of all instruction fetches.
-    PC*: uint8              ## Program Counter. Address of the current memory instruction.
-    SP*: uint8              ## Stack Pointer.
+    PC*: uint16             ## Program Counter. Address of the current memory instruction.
+    SP*: uint16             ## Stack Pointer.
     # Status register
     P*: set[CPUStatusKind]  ## Processor status
 
@@ -87,8 +87,8 @@ type
     BlockMove               # mvp $12, $34
 
   Cpu* = object
-    regs: CpuRegs
-    cycles: int
+    regs*: CpuRegs
+    cycles*: int
 
 template genFlagAccessor(flag: CPUStatusKind, accessor: untyped) =
   template `accessor`*(P: set[CPUStatusKind]): bool =
@@ -175,6 +175,18 @@ type
     cpu*: Cpu
     mem*: Mem
 
-func `[]`*(mem: Mem, adr: SomeUnsignedInt): uint8 =
+func `[]`*(mem: Mem, dataBank: uint8, adr: uint16): uint8 =
   # Stub
   discard
+
+######################################################################
+#
+# Aliases
+#
+######################################################################
+template DB*(): uint8 {.dirty.} = sys.cpu.regs.DB
+template PC*(): uint16 {.dirty.} = sys.cpu.regs.PC
+template P*(): set[CPUStatusKind] {.dirty.} = sys.cpu.regs.P
+
+template CycleCPU*() {.dirty.} = inc sys.cpu.cycles
+template Next*()     {.dirty.} = inc PC
