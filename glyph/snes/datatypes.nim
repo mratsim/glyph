@@ -175,9 +175,30 @@ type
     cpu*: Cpu
     mem*: Mem
 
-func `[]`*(mem: Mem, dataBank: uint8, adr: uint16): uint8 =
+  Addr* = distinct range[0'u32..0xFFFFFF'u32]
+    ## 24-bit address
+
+proc `shl`(x: Addr, y: int): Addr {.borrow, noSideEffect.}
+proc `or`(x, y: Addr): Addr {.borrow, noSideEffect.}
+proc `+`*(x, y: Addr): Addr {.borrow, noSideEffect.}
+
+func `+`*(x: Addr, y: SomeInteger): Addr {.inline.} =
+  x + Addr(y)
+
+func toAddr*(dataBank: uint8, adr: uint16): Addr {.inline.}=
+  Addr(dataBank) shl 16 or Addr(adr)
+
+func `[]`*(mem: Mem, adr: Addr): uint8 {.inline.}=
   # Stub
   discard
+
+func `[]`*(mem: Mem, dataBank: uint8, adr: uint16): uint8 {.inline.}=
+  # Stub
+  mem[toAddr(dataBank, adr)]
+
+func db*(adr: Addr): uint8 {.inline.}=
+  ## Get the databank from a 24-bit address
+  uint8(uint32(adr) shl 16)
 
 ######################################################################
 #

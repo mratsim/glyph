@@ -28,23 +28,24 @@ func immediate*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCo
 
 func absoluteImpl(sys: Sys, T: typedesc[uint8 or uint16], db: uint8, adr: T, ecc: static[ExtraCycleCosts]): T {.inline.}=
 
+  let full_adr = toAddr(db, adr)
   when T is uint16: # 2 cycles
-    result.lo = sys.mem[DB, adr]
+    result.lo = sys.mem[full_adr]
     CycleCPU()
 
-    if adr == 0xFFFF'u16:
-      result.hi = sys.mem[DB + 1, 0]
-    else:
-      result.hi = sys.mem[DB, adr + 1]
+    when EccCrossBoundary in ecc:
+      if adr == 0xFFFF: CycleCPU() # (+1 if crossing page boundary)
+
+    result.hi = sys.mem[full_adr + 1]
     CycleCPU()
 
   else: # 1 cycle
-    result = sys.mem[DB, adr]
+    result = sys.mem[full_adr]
     CycleCPU()
 
 func absolute*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
   let adr = sys.immediate(uint16, ecc)   # 2 cycles
-  result = absoluteImpl(sys, T, DB, adr) # 2 cycles (16-bit) or 1 cycle (8-bit)
+  result = absoluteImpl(sys, T, DB, adr) # 1 cycle (8-bit) or 2 cycles (16-bit)
 
 func absoluteLong*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
   let adr = sys.immediate(uint16, ecc)   # 2 cycles
@@ -53,4 +54,18 @@ func absoluteLong*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycl
   let db = sys.mem[DB, PC]
   CycleCPU()                             # 1 cycle
 
-  result = absoluteImpl(sys, T, DB, adr) # 2 cycles (16-bit) or 1 cycle (8-bit)
+  result = absoluteImpl(sys, T, DB, adr) # 1 cycle (8-bit) or 2 cycles (16-bit)
+
+func absoluteX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+
+  let adr = sys.immediate(uint16, ecc) + sys.regs.X # 2 cycles
+  when EccCrossBoundary in ecc:
+    if adr.db != DB: CycleCPU()                     # (+1 if crossing page boundary)
+  result = absoluteImpl(sys, T, DB, adr)            # 1 cycle (8-bit) or 2 cycles (16-bit)
+
+func absoluteY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+
+  let adr = sys.immediate(uint16, ecc) + sys.regs.Y # 2 cycles
+  when EccCrossBoundary in ecc:
+    if adr.db != DB: CycleCPU()                     # (+1 if crossing page boundary)
+  result = absoluteImpl(sys, T, DB, adr)            # 1 cycle (8-bit) or 2 cycles (16-bit)
