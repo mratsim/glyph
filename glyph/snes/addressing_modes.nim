@@ -26,11 +26,9 @@ func immediate*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCo
     result = sys.mem[DB, PC]
     CycleCPU()
 
-func absolute*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+func absoluteImpl(sys: Sys, T: typedesc[uint8 or uint16], db: uint8, adr: T, ecc: static[ExtraCycleCosts]): T {.inline.}=
 
-  let adr = sys.immediate(uint16, ecc) # 2 cycles
-
-  when T is uint16: # 2 cycles - total 4
+  when T is uint16: # 2 cycles
     result.lo = sys.mem[DB, adr]
     CycleCPU()
 
@@ -40,6 +38,19 @@ func absolute*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCos
       result.hi = sys.mem[DB, adr + 1]
     CycleCPU()
 
-  else: # 1 cycle - total 3
+  else: # 1 cycle
     result = sys.mem[DB, adr]
     CycleCPU()
+
+func absolute*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  let adr = sys.immediate(uint16, ecc)   # 2 cycles
+  result = absoluteImpl(sys, T, DB, adr) # 2 cycles (16-bit) or 1 cycle (8-bit)
+
+func absoluteLong*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  let adr = sys.immediate(uint16, ecc)   # 2 cycles
+
+  Next()
+  let db = sys.mem[DB, PC]
+  CycleCPU()                             # 1 cycle
+
+  result = absoluteImpl(sys, T, DB, adr) # 2 cycles (16-bit) or 1 cycle (8-bit)
