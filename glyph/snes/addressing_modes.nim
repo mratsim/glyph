@@ -30,14 +30,12 @@ func readAddr(sys: Sys, isLong: static[bool] = false): Addr {.inline.} =
   ## Returns a 24-bit address
   #  Implementation - 65816 is little-endian:
   #    low byte then high byte then data bank byte
-  var adr: uint16
-  adr.lo = readPC()                                        # 1 cycle
-  adr.hi = readPC()                                        # 1 cycle
-  let db =  when isLong: readPC()                          # (+1 cycle if long addressing)
-            else: DB()
-  result = toAddr(db, adr)
+  result.lo = readPC()                                        # 1 cycle
+  result.hi = readPC()                                        # 1 cycle
+  result.bank = when isLong: readPC()                         # (+1 cycle if long addressing)
+                else: DB
 
-func readData(sys: Sys, T: typedesc[uint8 or uint16], adr: Addr, ecc: static[ExtraCycleCosts]): T {.inline.}=
+func readData(sys: Sys, T: typedesc[uint8 or uint16], adr: Addr): T {.inline.}=
   ## Read a uint8 or uint16 value at a specific data address.
   ## Crossing a bank boundary (0xFFFF) when reading data does not cost an extra cycle.
   #  Implementation - 65816 is little-endian:
@@ -51,6 +49,19 @@ func readData(sys: Sys, T: typedesc[uint8 or uint16], adr: Addr, ecc: static[Ext
   else:                                                    # 1 cycle
     CycleCPU()
     result = sys.mem[adr]
+
+func readIndirectAddr(sys: Sys, ptrAddr: uint16, isLong: static[bool] = false): Addr {.inline.}=
+  ## Takes an address of a pointer and resolve/dereference that pointer.
+  ## Input address A --> read an address B at that address A --> returns address B
+  CycleCPU()                                               # 1 cycle
+  result.lo = sys.mem[0, ptrAddr]
+  CycleCPU()                                               # 1 cycle
+  result.hi = sys.mem[0, ptrAddr+1]
+  when isLong:
+    CycleCPU()                                             # (+1 cycle if long addressing)
+    result.bank = sys.mem[0, ptrAddr+2]
+  else:
+    result.bank = DB
 
 template crossBoundary(adr: Addr, dataBank: uint8) {.dirty.} =
   ## Add 1 CPU cycle if crossing bank boundary.
@@ -104,7 +115,7 @@ func absoluteX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCo
   ## 16-bit: and #$1234, X -- cycle: 4 -- length: 3
 
   let adr = sys.readAddr() + X                             # 2 cycles
-  crossBoundary(adr, DB())                                 # (+1 if crossing page boundary)
+  crossBoundary(adr, DB)                                   # (+1 if crossing page boundary)
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
 
 func absoluteY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
@@ -115,7 +126,7 @@ func absoluteY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCo
   ## 16-bit: and $1234 -- cycle: 4 -- length: 3
 
   let adr = sys.readAddr() + Y                             # 2 cycles
-  crossBoundary(adr, DB())                                 # (+1 if crossing page boundary)
+  crossBoundary(adr, DB)                                   # (+1 if crossing page boundary)
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
 
 func absoluteLongX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
@@ -136,21 +147,74 @@ func direct*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts
   ## Loads and return the value at the (Bank 0, 8-bit address + D register).
   ##  8-bit: and $12 -- cycle: 3 -- length: 2
   ## 16-bit: and $12 -- cycle: 4 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
 
   let adr = toAddr(0, D + readPC())                        # 1 cycle
   directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
 
+func directX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  ## Direct Indexed with X addressing mode - $OP $LL,X
+  ## Loads and return the value at the (0, 8-bit address + D register + X register).
+  ##  8-bit: and $12 -- cycle: 6 -- length: 2
+  ## 16-bit: and $12 -- cycle: 7 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
+
+  let adr = toAddr(0, D + readPC() + X)                    # 1 cycle
+  directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
+
+  CycleCpu()                                               # 1 cycle (IO)
+  result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
+
+func directY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  ## Direct Indexed with Y addressing mode - $OP $LL,Y
+  ## Loads and return the value at the (0, 8-bit address + D register + Y register).
+  ##  8-bit: and $12 -- cycle: 6 -- length: 2
+  ## 16-bit: and $12 -- cycle: 7 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
+
+  let adr = toAddr(0, D + readPC() + X)                    # 1 cycle
+  directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
+
+  CycleCpu()                                               # 1 cycle (IO)
+  result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
+
 func directXindirect*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
   ## Direct Indexed Indirect (with X) addressing mode - $OP ($LL,X)
+  ## Loads and return the value at the (Current Data Bank, 8-bit address + D register + X register).
+  ##  8-bit: and $12 -- cycle: 6 -- length: 2
+  ## 16-bit: and $12 -- cycle: 7 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
 
-  var adr = toAddr(0, D + readPC())                        # 1 cycle
+  let offset = D + readPC() + X                            # 1 cycle
   directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
-  CycleCpu()                                               # 1 cycle (IO)
-  adr += X.lo
-  CycleCpu()                                               # 1 cycle (low byte addition)
-  adr += X.hi
-  CycleCpu()                                               # 1 cycle (low byte addition)
-  adr.bank = DB()
 
+  CycleCpu()                                               # 1 cycle (IO)
+  let adr = sys.readIndirectAddr(offset)                   # 2 cycles (pointer dereference)
+  result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
+
+func directIndirect*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  ## Direct Indirect addressing mode - $OP ($LL)
+  ## Loads and return the value at the (Current Data Bank, 8-bit address + D register).
+  ##  8-bit: and $12 -- cycle: 5 -- length: 2
+  ## 16-bit: and $12 -- cycle: 6 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
+
+  let offset = D + readPC()                                # 1 cycle
+  directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
+
+  let adr = sys.readIndirectAddr(offset)                   # 2 cycles (pointer dereference)
+  result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
+
+func directIndirectLong*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  ## Direct Indirect Long addressing mode - $OP [$LL]
+  ## Loads and return the value at the (0 + carry, 8-bit address + D register).
+  ##  8-bit: and $12 -- cycle: 5 -- length: 2
+  ## 16-bit: and $12 -- cycle: 6 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
+
+  let offset = D + readPC()                                # 1 cycle
+  directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
+
+  let adr = sys.readIndirectAddr(offset, isLong = true)    # 3 cycles (long pointer dereference)
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)

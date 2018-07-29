@@ -171,17 +171,20 @@ func `[]`*(mem: Mem, bank: uint8, adr: uint16): uint8 {.inline.}=
   # Stub
   mem[toAddr(bank, adr)]
 
-func bank*(adr: Addr): uint8 {.inline.}=
+template bank*(adr: Addr): uint8 =
   ## Get the databank from a 24-bit address
   uint8(uint32(adr) shr 16)
 template `bank=`*(adr: var Addr, bank: uint8) =
-  ## Set the databank of a 24-bit address
-  adr = (adr and 0xFFFF) or (data.Addr shl 16)
+  ## Set/overwrite the databank of a 24-bit address $DBHHLL
+  adr = (adr and 0x00FFFF) or (data.Addr shl 16)
 
-func relAddr*(adr: Addr): uint16 {.inline.}=
-  ## Strip the databank and only return the relative address
-  ## from a full address
-  uint16(adr)
+template `lo=`*(adr: var Addr, lo: uint8) =
+  ## Set/overwrite the low byte of a 24-bit address $DBHHLL
+  adr = (adr and 0xFFFF00) or lo.Addr
+
+template `hi=`*(adr: var Addr, hi: uint8) =
+  ## Set/overwrite the hi byte of a 24-bit address $DBHHLL
+  adr = (adr and 0xFF00FF) or (lo.Addr shl 8)
 
 ######################################################################
 #
@@ -199,4 +202,5 @@ template X*(): uint16 {.dirty.} = sys.cpu.regs.X
 template Y*(): uint16 {.dirty.} = sys.cpu.regs.Y
 
 template CycleCPU*() {.dirty.} = inc sys.cpu.cycles
+template CycleCPU*(n: int) {.dirty.} = inc sys.cpu.cycles, n
 template Next*()     {.dirty.} = inc PC
