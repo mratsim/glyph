@@ -123,7 +123,7 @@ type
     Ecc1_m16bit         # +1 cycle if access is done in 16-bit memory or accumulator
     EccDirectLowNonZero # +1 cycle if low byte of Direct page register != 0
     EccCrossBoundary    # +1 cycle if adding index crosses a page boundary
-    Ecc2_m16bit         # +2 cycles if access is done in 16-bit memory or accumulator
+    Ecc2_m16bit         # +2 cycles if access is done in 16-bit memory or accumulator (read-modify-write)
     EccBranchTaken      # +1 cycle if branch taken
     Ecc65C02BranchCross # +1 cycle if branch taken, cross boundary and emulation mode
     Ecc65816Native      # +1 cycle if 65816 mode (no emulation)
@@ -160,18 +160,18 @@ proc `+`*(x, y: Addr): Addr {.borrow, noSideEffect.}
 func `+`*(x: Addr, y: SomeInteger): Addr {.inline.} =
   x + Addr(y)
 
-func toAddr*(dataBank: uint8, adr: uint16): Addr {.inline.}=
-  Addr(dataBank) shl 16 or Addr(adr)
+func toAddr*(bank: uint8, adr: uint16): Addr {.inline.}=
+  Addr(bank) shl 16 or Addr(adr)
 
 func `[]`*(mem: Mem, adr: Addr): uint8 {.inline.}=
   # Stub
   discard
 
-func `[]`*(mem: Mem, dataBank: uint8, adr: uint16): uint8 {.inline.}=
+func `[]`*(mem: Mem, bank: uint8, adr: uint16): uint8 {.inline.}=
   # Stub
-  mem[toAddr(dataBank, adr)]
+  mem[toAddr(bank, adr)]
 
-func db*(adr: Addr): uint8 {.inline.}=
+func bank*(adr: Addr): uint8 {.inline.}=
   ## Get the databank from a 24-bit address
   uint8(uint32(adr) shr 16)
 
@@ -186,6 +186,7 @@ func relAddr*(adr: Addr): uint16 {.inline.}=
 #
 ######################################################################
 template DB*(): uint8 {.dirty.} = sys.cpu.regs.DB
+template PB*(): uint8 {.dirty.} = sys.cpu.regs.pB
 template PC*(): uint16 {.dirty.} = sys.cpu.regs.PC
 template P*(): set[CPUStatusKind] {.dirty.} = sys.cpu.regs.P
 

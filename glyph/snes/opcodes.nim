@@ -61,8 +61,6 @@ genOpcTable:
       P.negative = A.isMsbSet
       P.zero     = A == 0
 
-      CycleCPU()
-
   op AND: # AND Accumulator with memory
     0x21: cycles 6, {Ecc1_m16bit, EccDirectLowNonZero}                  , DirectXIndirect
     0x23: cycles 4, {Ecc1_m16bit}                                       , StackRelative
