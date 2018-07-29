@@ -157,10 +157,10 @@ proc `shl`(x: Addr, y: int): Addr {.borrow, noSideEffect.}
 proc `or`(x, y: Addr): Addr {.borrow, noSideEffect.}
 proc `+`*(x, y: Addr): Addr {.borrow, noSideEffect.}
 
-func `+`*(x: Addr, y: SomeInteger): Addr {.inline.} =
+template `+`*(x: Addr, y: SomeInteger): Addr =
   x + Addr(y)
 
-func toAddr*(bank: uint8, adr: uint16): Addr {.inline.}=
+template toAddr*(bank: uint8, adr: uint16): Addr =
   Addr(bank) shl 16 or Addr(adr)
 
 func `[]`*(mem: Mem, adr: Addr): uint8 {.inline.}=

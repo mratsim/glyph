@@ -115,7 +115,7 @@ func absoluteX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCo
   ## 16-bit: and #$1234, X -- cycle: 4 -- length: 3
 
   let adr = sys.readAddr() + X                             # 2 cycles
-  crossBoundary(adr, DB)                                   # (+1 if crossing page boundary)
+  crossBoundary(adr, DB)                                   # (+1 if crossing data bank boundary)
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
 
 func absoluteY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
@@ -126,7 +126,7 @@ func absoluteY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCo
   ## 16-bit: and $1234 -- cycle: 4 -- length: 3
 
   let adr = sys.readAddr() + Y                             # 2 cycles
-  crossBoundary(adr, DB)                                   # (+1 if crossing page boundary)
+  crossBoundary(adr, DB)                                   # (+1 if crossing data bank boundary)
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
 
 func absoluteLongX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
@@ -139,7 +139,7 @@ func absoluteLongX*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCyc
   let adr = sys.readAddr(isLong = true)                    # 2 cycles
   let db = adr.db
   let effectiveAdr = readAddr + X
-  crossBoundary(effectiveAdr, db)                          # (+1 if crossing page boundary)
+  crossBoundary(effectiveAdr, db)                          # (+1 if crossing data bank boundary)
   result = sys.readData(T, effectiveAdr, ecc)              # 1 cycle (8-bit) or 2 cycles (16-bit)
 
 func direct*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
@@ -217,4 +217,20 @@ func directIndirectLong*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[Ext
   directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
 
   let adr = sys.readIndirectAddr(offset, isLong = true)    # 3 cycles (long pointer dereference)
+  result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
+
+func directIndirectY*(sys: Sys, T: typedesc[uint8 or uint16], ecc: static[ExtraCycleCosts]): T {.inline.}=
+  ## Direct Indirect Indexed addressing mode - $OP ($LL), Y
+  ## Loads and return the value at the (Current Data Bank, 8-bit address + D register) + Y.
+  ##  8-bit: and $12 -- cycle: 5 -- length: 2
+  ## 16-bit: and $12 -- cycle: 6 -- length: 2
+  ## +1 cycle if Direct register is not page-aligned (low byte == 0)
+
+  let offset = D + readPC()                                # 1 cycle
+  directLowNonZero(adr, D)                                 # (+1 Direct register low byte != 0)
+
+  let adr = sys.readIndirectAddr(offset)                   # 2 cycles (pointer dereference)
+  let effectiveAddr = adr + Y
+  crossBoundary(effectiveAddr, adr)                        # (+1 if crossing data bank boundary)
+
   result = sys.readData(T, adr, ecc)                       # 1 cycle (8-bit) or 2 cycles (16-bit)
