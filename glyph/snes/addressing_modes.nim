@@ -43,14 +43,14 @@ func readData(sys: Sys, T: typedesc[uint8 or uint16], adr: Addr, ecc: static[Ext
   #  Implementation - 65816 is little-endian:
   #    low byte then high byte
   when T is uint16:                                        # 2 cycles
+    CycleCPU()
     result.lo = sys.mem[adr]
-    CycleCPU()
 
+    CycleCPU()
     result.hi = sys.mem[adr + 1] # This crosses data banks. No extra cycle.
-    CycleCPU()
   else:                                                    # 1 cycle
-    result = sys.mem[adr]
     CycleCPU()
+    result = sys.mem[adr]
 
 template crossBoundary(adr: Addr, dataBank: uint8) {.dirty.} =
   ## Add 1 CPU cycle if crossing bank boundary.
