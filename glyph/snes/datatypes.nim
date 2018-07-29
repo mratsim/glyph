@@ -13,11 +13,11 @@ import tables
 # as it doesn't work with JS target.
 # Ergonomically it also requires extra `u16`, `u8.lo`, `u8.hi` access.
 
-template lo*(x: uint16): uint8 = uint8(x and 0x00FF)
+template lo*(x: uint16): uint8 = x.uint8
 template `lo=`*(x: var uint16, data: uint8) =
   x = (x and 0xFF00) or data.uint16
 
-template hi*(x: uint16): uint8 = uint8(x and 0xFF00)
+template hi*(x: uint16): uint8 = uint8(x shr 8)
 template `hi=`*(x: var uint16, data: uint8) =
   x = (x and 0x00FF) or (data.uint16 shl 8)
 
