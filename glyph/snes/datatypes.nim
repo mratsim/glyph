@@ -174,6 +174,9 @@ func `[]`*(mem: Mem, bank: uint8, adr: uint16): uint8 {.inline.}=
 func bank*(adr: Addr): uint8 {.inline.}=
   ## Get the databank from a 24-bit address
   uint8(uint32(adr) shr 16)
+template `bank=`*(adr: var Addr, bank: uint8) =
+  ## Set the databank of a 24-bit address
+  adr = (adr and 0xFFFF) or (data.Addr shl 16)
 
 func relAddr*(adr: Addr): uint16 {.inline.}=
   ## Strip the databank and only return the relative address
@@ -189,6 +192,11 @@ template DB*(): uint8 {.dirty.} = sys.cpu.regs.DB
 template PB*(): uint8 {.dirty.} = sys.cpu.regs.pB
 template PC*(): uint16 {.dirty.} = sys.cpu.regs.PC
 template P*(): set[CPUStatusKind] {.dirty.} = sys.cpu.regs.P
+
+template D*(): uint16 {.dirty.} = sys.cpu.regs.D
+
+template X*(): uint16 {.dirty.} = sys.cpu.regs.X
+template Y*(): uint16 {.dirty.} = sys.cpu.regs.Y
 
 template CycleCPU*() {.dirty.} = inc sys.cpu.cycles
 template Next*()     {.dirty.} = inc PC

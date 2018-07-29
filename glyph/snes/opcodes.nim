@@ -48,6 +48,8 @@ genOpcTable:
         A = add(A, val, carry, overflow)
         A = add(A, T(P.carry), carry, overflow)
 
+      # # # # # # # # # # # # # #
+
       var carry, overflow = false
 
       if P.emulation_mode:
