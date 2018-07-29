@@ -11,6 +11,7 @@ import tables
 
 # We don't use {.union.} types here for lo and hi uint8 access of uint16
 # as it doesn't work with JS target.
+# Ergonomically it also requires extra `u16`, `u8.lo`, `u8.hi` access.
 
 template lo*(x: uint16): uint8 = uint8(x and 0x00FF)
 template `lo=`*(x: var uint16, data: uint8) =
@@ -60,30 +61,31 @@ type
     P*: set[CPUStatusKind]  ## Processor status
 
   AddressingMode* = enum
+    # $number represents a number in hexadecimal representation
     # Name                  # Example
     Accumulator             # dec a
     Implied                 # clc
     Immediate               # inc #$12 or #$1234
     Absolute                # and $1234
     AbsoluteLong            # and $123456
-    AbsoluteLongX           # and $123456, x
-    AbsoluteX               # and $1234, x
-    AbsoluteY               # and $1234, y
-    AbsoluteXIndirect       # jmp ($1234, x)
+    AbsoluteLongX           # and $123456,X
+    AbsoluteX               # and $1234,X
+    AbsoluteY               # and $1234,Y
+    AbsoluteXIndirect       # jmp ($1234,X)
     AbsoluteIndirect        # jmp ($1234)
     AbsoluteIndirectLong    # jml [$1234]
     Direct                  # and $12
-    DirectX                 # stz $12, x
-    DirectY                 # stz $12, y
-    DirectXIndirect         # and ($12, x)
+    DirectX                 # stz $12,X
+    DirectY                 # stz $12,Y
+    DirectXIndirect         # and ($12,X)
     DirectIndirect          # and ($12)
     DirectIndirectLong      # and [$12]
-    DirectIndirectY         # and ($12), y
-    DirectIndirectLongY     # and [$12], y
+    DirectIndirectY         # and ($12),Y
+    DirectIndirectLongY     # and [$12],Y
     ProgramCounterRelative  # beq $12
     ProgCountRelativeLong   # brl $1234
-    StackRelative           # and $12, s
-    StackRelativeIndirectY  # and ($12, s), y
+    StackRelative           # and $12,S
+    StackRelativeIndirectY  # and ($12,S),Y
     BlockMove               # mvp $12, $34
 
   Cpu* = object
@@ -115,33 +117,6 @@ genFlagAccessor Emulation_mode, emulation_mode
 # Opcodes
 #
 ######################################################################
-
-const OpcLength* = [
-    Accumulator            : 1,
-    Implied                : 1,
-    Immediate              : 2,
-    Absolute               : 3,
-    AbsoluteLong           : 4,
-    AbsoluteLongX          : 4,
-    AbsoluteX              : 3,
-    AbsoluteY              : 3,
-    AbsoluteXIndirect      : 3,
-    AbsoluteIndirect       : 3,
-    AbsoluteIndirectLong   : 3,
-    Direct                 : 2,
-    DirectX                : 2,
-    DirectY                : 2,
-    DirectXIndirect        : 2,
-    DirectIndirect         : 2,
-    DirectIndirectLong     : 2,
-    DirectIndirectY        : 2,
-    DirectIndirectLongY    : 2,
-    ProgramCounterRelative : 2,
-    ProgCountRelativeLong  : 3,
-    StackRelative          : 2,
-    StackRelativeIndirectY : 2,
-    BlockMove              : 3,
-]
 
 type
   ExtraCycleCost* = enum
@@ -198,7 +173,12 @@ func `[]`*(mem: Mem, dataBank: uint8, adr: uint16): uint8 {.inline.}=
 
 func db*(adr: Addr): uint8 {.inline.}=
   ## Get the databank from a 24-bit address
-  uint8(uint32(adr) shl 16)
+  uint8(uint32(adr) shr 16)
+
+func relAddr*(adr: Addr): uint16 {.inline.}=
+  ## Strip the databank and only return the relative address
+  ## from a full address
+  uint16(adr)
 
 ######################################################################
 #
