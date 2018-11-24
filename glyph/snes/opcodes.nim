@@ -23,6 +23,7 @@ genOpcTable:
     0x7F: cycles 5, {Ecc1_m16bit}                                       , AbsoluteLongX
 
     implementation:
+      # ###################################################################################
       template adcImpl(sys: Sys, T: typedesc[uint8 or uint16], carry, overflow: var bool) =
         # Implement uint8 and uint16 mode
 
@@ -31,8 +32,18 @@ genOpcTable:
           when T is uint16: sys.cpu.regs.A
           else: sys.cpu.regs.A.lo
 
-        func add(x, y: T, carry, overflow: var bool): T {.nimcall, inline.} =
+        func add(x, y: T, carry, overflow: var bool): T {.inline.} =
           # Add function helper
+          # Carry edge cases on uint8:
+          #   - x =   0, y =   0, P.carry = 0 --> result =   0, carry = 0
+          #   - x = 255, y =   0, P.carry = 1 --> result =   0, carry = 1
+          #   - x =   0, y = 255, P.carry = 1 --> result =   0, carry = 1
+          #   - x = 127, y = 128, P.carry = 1 --> result =   0, carry = 1
+          #   - x = 128, y = 127, P.carry = 1 --> result =   0, carry = 1
+          #   - x = 255, y =   0, P.carry = 0 --> result = 255, carry = 0
+          #   - x =   0, y = 255, P.carry = 0 --> result = 255, carry = 0
+          #   - x = 127, y = 128, P.carry = 0 --> result = 255, carry = 0
+          #   - x = 128, y = 127, P.carry = 0 --> result = 255, carry = 0
           result = x + y
           carry = carry or result < x
           overflow =  overflow or
@@ -47,8 +58,7 @@ genOpcTable:
         # TODO: Decimal mode
         A = add(A, val, carry, overflow)
         A = add(A, T(P.carry), carry, overflow)
-
-      # # # # # # # # # # # # # #
+      # ###################################################################################
 
       var carry, overflow = false
 
@@ -81,7 +91,31 @@ genOpcTable:
     0x3F: cycles 5, {Ecc1_m16bit}                                       , AbsoluteLongX
 
     implementation:
-      discard
+      # ###################################################################################
+      template andImpl(sys: Sys, T: typedesc[uint8 or uint16]) =
+        # Implement uint8 and uint16 mode
+
+        template A {.dirty.} =
+          # Alias for accumulator depending on mode
+          when T is uint16: sys.cpu.regs.A
+          else: sys.cpu.regs.A.lo
+
+        # Fetch data.
+        # `addressingMode` and `extraCycleCosts` are injected by "implementation"
+        let val = sys.`addressingMode`(T, `extraCycleCosts`{.inject.})
+
+        # Computation
+        A = A and val
+      # ###################################################################################
+
+      if P.emulation_mode:
+        sys.andImpl(uint8)
+      else:
+        sys.andImpl(uint16)
+
+      # Sets the flags
+      P.negative = A.isMsbSet
+      P.zero     = A == 0
 
   op ASL: # Arithmetic Shift Left
     0x06: cycles 5, {EccDirectLowNonZero, Ecc2_m16bit}                  , Direct
