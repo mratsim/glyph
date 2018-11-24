@@ -125,7 +125,32 @@ genOpcTable:
     0x1E: cycles 7, {Ecc2_m16bit}                                       , AbsoluteX
 
     implementation:
-      discard
+      # ###################################################################################
+      template aslImpl(sys: Sys, T: typedesc[uint8 or uint16], carry: var bool) =
+        # Implement uint8 and uint16 mode
+
+        template A {.dirty.} =
+          # Alias for accumulator depending on mode
+          when T is uint16: sys.cpu.regs.A
+          else: sys.cpu.regs.A.lo
+
+        # Fetch data.
+        # `addressingMode` and `extraCycleCosts` are injected by "implementation"
+        let val = sys.`addressingMode`(T, `extraCycleCosts`{.inject.})
+
+        # Computation
+        A = val shl 1
+        carry = val.isMsbSet
+      # ###################################################################################
+
+      if P.emulation_mode:
+        sys.aslImpl(uint8, P.carry)
+      else:
+        sys.aslImpl(uint16, P.carry)
+
+      # Sets the flags
+      P.negative = A.isMsbSet
+      P.zero     = A == 0
 
   op BCC: # Branch if Carry Clear
     0x90: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
