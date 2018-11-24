@@ -3,8 +3,17 @@
 
 import ./private/macros_opcodes, ./datatypes
 
-genOpcTable:
+template branch(condition: untyped) {.dirty.} =
+  let jmpRelAddr = sys.immediate(uint8, `extraCycleCosts`{.inject.})
+  if condition:
+    CycleCPU()
+    let jmpAddr = sys.cpu.PC + jmpRelAddr.uint16
+    if P.emulation_mode and jmpAddr.uint8 < jmpRelAddr:
+      # Extra-cycle if we cross a 256-bit page boundary in emulation mode
+      CycleCPU()
+    sys.cpu.PC = jmpAddr
 
+genOpcTable:
   op ADC: # Add with Carry
     0x61: cycles 6, {Ecc1_m16bit, EccDirectLowNonZero}                  , DirectXIndirect
     0x63: cycles 4, {Ecc1_m16bit}                                       , StackRelative
@@ -155,17 +164,17 @@ genOpcTable:
   op BCC: # Branch if Carry Clear
     0x90: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(not P.carry)
 
   op BCS: # Branch if Carry Set
     0xB0: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(P.carry)
 
   op BEQ: # Branch if Equal
     0xF0: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(P.zero)
 
   op BIT: # Test Bits
     0x24: cycles 3, {Ecc1_m16bit, EccDirectNonZero}                    , Direct
@@ -180,12 +189,12 @@ genOpcTable:
   op BNE: # Branch if Not Equal
     0x30: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(not P.zero)
 
   op BPL: # Branch if Plus
     0x10: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(not P.isNegative)
 
   op BRA: # Branch Always
     0x80: cycles 3, {Ecc65C02BranchCross}                              , ProgramCounterRelative
@@ -205,12 +214,12 @@ genOpcTable:
   op BVC: # Branch if Overflow Clear
     0x50: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(not P.overflow)
 
   op BVS: # Branch if Overflow Set
     0x70: cycles 2, {EccBranchTaken, Ecc65C02BranchCross}              , ProgramCounterRelative
     implementation:
-      discard
+      branch(P.overflow)
 
   op CLC: # Clear Carry
     0x18: cycles 2, {}                                                 , Implied
@@ -254,6 +263,9 @@ genOpcTable:
 
   op COP: # Co-Processor Enable
     0x02: cycles 7, {Ecc65816Native}                                    , Immediate
+
+    implementation:
+      discard
 
   op CPX: # Compare Index Register X with Memory
     0xE0: cycles 2, {Ecc1_xy16bit}                                      , Immediate
